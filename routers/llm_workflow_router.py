@@ -2,7 +2,9 @@ from fastapi import APIRouter, HTTPException, status, Request, Response, Depends
 from core.security import token_decoder, create_access_token
 from llm_workflow.workflows.base import ChatbotExecutor
 from llm_workflow.workflows.flows import AdaptiveChatbot
+from llm_workflow.config_files.config import workflow_settings
 from pydantic import BaseModel, Field
+from typing import Any
 
 
 
@@ -10,8 +12,9 @@ router = APIRouter(
     prefix="/v1",
     tags=["v1"],
 )
-class Token(BaseModel):
+class TokenHolder(BaseModel):
     token: str
+    secret_token: str | Any
 
 
 class MessageResponse(BaseModel):
@@ -26,9 +29,14 @@ class MessageRequest(MessageResponse):
 
 
 @router.post("/get-token")
-async def get_token(token: Token):
-    subject = {"sub":token.token}
-    return create_access_token(subject=subject)
+async def get_token(token: TokenHolder ):
+    real_token = workflow_settings.SECRET_KEY.get_secret_value()
+    if real_token == token.secret_token.strip():
+
+        subject = {"sub":token.token}
+        return create_access_token(subject=subject)
+    else:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
 
 @router.post("/send-message", response_model=MessageResponse)

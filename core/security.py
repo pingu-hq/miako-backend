@@ -3,6 +3,7 @@ from typing import Optional, Any, Union
 from jose import jwt
 from jose.exceptions import JWTError, ExpiredSignatureError, JWTClaimsError
 from core.config import settings
+from llm_workflow.config_files.config import workflow_settings
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError, VerificationError, InvalidHashError
 from fastapi.concurrency import run_in_threadpool
@@ -14,6 +15,7 @@ COOKIE_SETTINGS={
     "samesite":"lax",
     "domain":settings.DOMAIN
 }
+
 
 ph = PasswordHasher()
 
@@ -54,7 +56,7 @@ def token_decoder(token: Optional[str]) -> Optional[dict[str, Any]]:
     try:
         payload: dict[str, Any] = jwt.decode(
             token=token,
-            key=settings.SECRET_KEY,
+            key=workflow_settings.SECRET_KEY.get_secret_value(),
             algorithms=[settings.ALGORITHM]
         )
         return payload

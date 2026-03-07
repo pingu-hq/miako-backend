@@ -12,6 +12,7 @@ class WorkflowSetting(BaseSettings):
     CLIENT_URI: SecretStr
     CLIENT_TOKEN: SecretStr
     COHERE_API_KEY: SecretStr
+    SECRET_KEY: SecretStr
 
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env",
