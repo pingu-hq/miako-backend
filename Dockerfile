@@ -16,4 +16,5 @@ COPY . /app
 
 RUN uv sync --frozen --no-cache
 
-CMD ["/app/.venv/bin/fastapi", "run", "main.py", "--port", "80", "--host", "0.0.0.0"]
+#CMD ["/app/.venv/bin/fastapi", "run", "main:app", "--port", "80", "--host", "0.0.0.0"]
+CMD ["/app/.venv/bin/uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
