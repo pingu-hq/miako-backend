@@ -1,38 +1,53 @@
-from typing import Union, Any
-
-from fastapi import APIRouter, HTTPException, status
-from llm_workflow.workflows.executor import ChatbotExecutor
+from fastapi import APIRouter, HTTPException, status, Request, Response, Depends
+from core.security import token_decoder, create_access_token
+from llm_workflow.workflows.base import ChatbotExecutor
 from llm_workflow.workflows.flows import AdaptiveChatbot
 from pydantic import BaseModel, Field
 
 
 
 router = APIRouter(
-    prefix="/api/chatbot",
-    tags=["chatbot"],
+    prefix="/v1",
+    tags=["v1"],
 )
+class Token(BaseModel):
+    token: str
+
 
 class MessageResponse(BaseModel):
     message: str
 
 
 class MessageRequest(MessageResponse):
-    id: Union[str, Any] = Field(default="user_test")
+    # id: Union[str, Any] = Field(default="user_test")
+    token: str
 
 
+
+
+@router.post("/get-token")
+async def get_token(token: Token):
+    subject = {"sub":token.token}
+    return create_access_token(subject=subject)
 
 
 @router.post("/send-message", response_model=MessageResponse)
-async def send_message(request: MessageRequest):
+async def send_message(body: MessageRequest):
     try:
+        payload = token_decoder(token=body.token)
+
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
         chat_obj = AdaptiveChatbot(
-            user_id=request.id,
-            input_message=request.message,
+            user_id=user_id,
+            input_message=body.message,
         )
         chatbot = ChatbotExecutor(chat_obj)
         response = await chatbot.execute()
         return MessageResponse(message=str(response))
     except HTTPException:
         raise
-    except Exception as err:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err))
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)

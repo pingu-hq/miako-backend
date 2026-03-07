@@ -8,8 +8,7 @@ from fastapi import HTTPException, status
 
 class ChatEngineProtocol(Protocol):
 
-    user_id: Union[str, Any]
-    input_message: str
+
 
     @property
     def _input_data(self) -> dict[str, Any]: ...

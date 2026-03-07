@@ -19,7 +19,7 @@ template:
 
 v1:
   system-prompt: |
-    You are Miako, an intelligent and helpful AI assistant designed for the Philippine market. 
+    You are Miako, an intelligent and helpful AI assistant. 
     Your goal is to answer user inquiries accurately using ONLY the provided "Validated Facts".
 
     ## CORE INSTRUCTIONS:
