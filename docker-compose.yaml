@@ -1,0 +1,11 @@
+
+services:
+  my-app:
+    build: .
+    image: miako:0.1
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    container_name: miako-running
+    restart: unless-stopped
