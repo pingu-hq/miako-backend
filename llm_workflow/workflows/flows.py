@@ -14,9 +14,9 @@ from jinja2 import Template
 
 
 prompts = PromptLibrary()
-system_prompt_final = prompts.get_prompt("v1.system-prompt")
+system_prompt_final = prompts.get_prompt("v2.system-prompt")
 
-_user_prompt_final = prompts.get_prompt("v1.user-prompt")
+_user_prompt_final = prompts.get_prompt("v2.user-prompt")
 user_prompt_template = Template(_user_prompt_final, enable_async=True)
 
 
@@ -68,6 +68,7 @@ class _AdaptiveChatbotEngine(Flow[EngineStates]):
         _input = self.state.language_layer_handler
         user_original_input = _input.get("original_text")
         user_translated_input = _input.get("translated_text")
+        language_used_input = _input.get("source_language")
         memory = await self.message_storage.get_messages(include_metadata=True)
         conversation_history = json.dumps(memory)
         user_prompt = await user_prompt_template.render_async(
@@ -75,16 +76,17 @@ class _AdaptiveChatbotEngine(Flow[EngineStates]):
             intent_classifier_json_output=data,
             user_original_input=user_original_input,
             user_translated_input=user_translated_input,
+            source_language=language_used_input
         )
         llm = GroqLLM()
         llm.add_system(content=system_prompt_final)
         llm.add_user(content=user_prompt)
         response = await llm.groq_chat(
-            model=MODEL.qwen, temperature=.6,
+            model=MODEL.gpt_oss_120, temperature=.6,
             max_completion_tokens=20_000,
-            reasoning_effort="default",
-            reasoning_format="hidden"
+            reasoning_effort="medium"
         )
+
         print(user_prompt)
         await self.message_storage.add_ai_message(content=response)
         return response
