@@ -33,7 +33,7 @@ class RefreshTokenResponse(BaseModel):
     token_type: str = Field(default="bearer")
 
 router = APIRouter(
-    prefix="v2",
+    prefix="/v2",
     tags=["chatbot"]
 )
 
