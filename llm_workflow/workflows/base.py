@@ -1,3 +1,4 @@
+import uuid
 from typing import Any, Union, Protocol
 from pydantic import BaseModel
 from crewai.flow.flow import Flow
@@ -8,7 +9,7 @@ from fastapi import HTTPException, status
 
 class ChatEngineProtocol(Protocol):
 
-
+    user_id: Union[str, uuid.UUID, Any]
 
     @property
     def _input_data(self) -> dict[str, Any]: ...
