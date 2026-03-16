@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers.llm_workflow_router import router as llm_router
-from routers.router_v2 import router as v2
+from routers.llm_workflow_router import router as chatbot_router_v1
+from routers.router_v2 import router as chatbot_router_v2
 from core.config import settings
 
 
@@ -28,8 +28,8 @@ app.add_middleware(
 )
 
 
-app.include_router(llm_router)
-app.include_router(v2)
+app.include_router(chatbot_router_v1)
+app.include_router(chatbot_router_v2)
 
 # if __name__ == "__main__":
 #     import uvicorn
