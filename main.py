@@ -8,15 +8,20 @@ from core.config import settings
 app = FastAPI(
     docs_url="/api-docs",
     redoc_url="/api-redoc",
-    openapi_url="/openapi.json",
+    openapi_url="/api-openapi.json",
     title="Miako Hackathon Project",
 )
 
 
-domain = [settings.DOMAIN]
+# domain = [settings.DOMAIN]
+origins = settings.ORIGINS.get_secret_value()
+allow_origins = [
+    origin.strip()
+    for origin in origins.split(",")
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=domain,
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST"],
     allow_headers=["Authorization", "Content-Type"],
