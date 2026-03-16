@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     DOMAIN: str = Field(...)
     DATABASE_TYPE: str = Field(default="postgres") #Change this to postgres if you want to use postgres database
     POSTGRES_URL: SecretStr
+    ORIGINS: SecretStr
 
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env",
