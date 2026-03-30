@@ -13,6 +13,18 @@ class WorkflowSetting(BaseSettings):
     CLIENT_TOKEN: SecretStr
     COHERE_API_KEY: SecretStr
     SECRET_KEY: SecretStr
+    AZURE_PROJECT_ENDPOINT: SecretStr
+    AGENT_NAME_1: str
+    AGENT_VERSION_1: str
+
+    @property
+    def KOKOMI_AGENT(self) -> dict[str, dict[str, str]]:
+        return self._create_agent_ref(name=self.AGENT_NAME_1, version=self.AGENT_VERSION_1)
+
+    @staticmethod
+    def _create_agent_ref(name:str, version:str):
+        return {"agent_reference": {"name": name, "version": version, "type": "agent_reference"}}
+
 
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / ".env",
