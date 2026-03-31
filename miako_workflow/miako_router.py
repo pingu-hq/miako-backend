@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from databases.database import get_session
 from pydantic import BaseModel, Field
 from miako_workflow.workflows.steps.decision_step import DecisionStepAzure
+from miako_workflow.config_files.config import workflow_settings
 
 
 class UserBase(BaseModel):
@@ -112,3 +113,9 @@ def me_test(payload: RefreshTokenRequest):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err))
 
 
+@router.get("/hello", status_code=status.HTTP_202_ACCEPTED)
+def hello_world():
+    _hello = workflow_settings.HELLO_WORLD.upper()
+    if _hello:
+        return {"MESSAGE": _hello}
+    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED)
