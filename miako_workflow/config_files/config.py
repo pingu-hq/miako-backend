@@ -16,6 +16,7 @@ class WorkflowSetting(BaseSettings):
     AZURE_PROJECT_ENDPOINT: SecretStr
     AGENT_NAME_1: str
     AGENT_VERSION_1: str
+    HELLO_WORLD: str
 
     @property
     def KOKOMI_AGENT(self) -> dict[str, dict[str, str]]:
