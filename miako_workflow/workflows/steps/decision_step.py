@@ -3,22 +3,25 @@ import time
 from posthog.ai.openai import OpenAI
 from miako_workflow.config_files.config import workflow_settings
 from azure.ai.projects import AIProjectClient
-from azure.identity import DefaultAzureCredential
+from azure.identity import ClientSecretCredential
 from starlette.concurrency import run_in_threadpool
 from dataclasses import dataclass
 from functools import lru_cache
 
 
 _azure_project_client: AIProjectClient | None = None
-_azure_credential: DefaultAzureCredential | None = None
-
+_azure_credential: ClientSecretCredential | None = None
 
 
 def load_azure_ai_project():
     global _azure_project_client, _azure_credential
     try:
         if _azure_credential is None:
-            _azure_credential = DefaultAzureCredential()
+            _azure_credential = ClientSecretCredential(
+                client_id=workflow_settings.AZURE_CLIENT_ID,
+                tenant_id=workflow_settings.AZURE_TENANT_ID,
+                client_secret=workflow_settings.AZURE_CLIENT_SECRET
+            )
 
         if _azure_project_client is None:
             _azure_project_client = AIProjectClient(
@@ -31,7 +34,11 @@ def load_azure_ai_project():
         _azure_project_client = None
 
     try:
-        _azure_credential = DefaultAzureCredential()
+        _azure_credential = ClientSecretCredential(
+            client_id=workflow_settings.AZURE_CLIENT_ID,
+            tenant_id=workflow_settings.AZURE_TENANT_ID,
+            client_secret=workflow_settings.AZURE_CLIENT_SECRET
+        )
         _azure_project_client = AIProjectClient(
             credential=_azure_credential,
             endpoint=workflow_settings.AZURE_PROJECT_ENDPOINT.get_secret_value()
