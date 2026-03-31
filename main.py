@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers.llm_workflow_router import router as chatbot_router_v1
 from routers.router_v2 import router as chatbot_router_v2
 from core.config import settings
+from miako_workflow.miako_router import router as miako_router_v1
 
 
 app = FastAPI(
@@ -29,7 +30,8 @@ app.add_middleware(
 
 
 app.include_router(chatbot_router_v1)
-app.include_router(chatbot_router_v2)
+# app.include_router(chatbot_router_v2)
+app.include_router(miako_router_v1)
 
 # if __name__ == "__main__":
 #     import uvicorn
