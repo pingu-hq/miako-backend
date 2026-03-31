@@ -18,6 +18,10 @@ class WorkflowSetting(BaseSettings):
     AGENT_VERSION_1: str
     HELLO_WORLD: str
 
+    AZURE_CLIENT_ID: SecretStr
+    AZURE_TENANT_ID: SecretStr
+    AZURE_CLIENT_SECRET: SecretStr
+
     @property
     def KOKOMI_AGENT(self) -> dict[str, dict[str, str]]:
         return self._create_agent_ref(name=self.AGENT_NAME_1, version=self.AGENT_VERSION_1)
