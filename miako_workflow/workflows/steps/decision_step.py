@@ -1,5 +1,4 @@
 import asyncio
-import time
 from posthog.ai.openai import OpenAI
 from miako_workflow.config_files.config import workflow_settings
 from azure.ai.projects import AIProjectClient
@@ -33,19 +32,19 @@ def load_azure_ai_project():
         _azure_credential = None
         _azure_project_client = None
 
-    try:
-        _azure_credential = ClientSecretCredential(
-            client_id=workflow_settings.AZURE_CLIENT_ID,
-            tenant_id=workflow_settings.AZURE_TENANT_ID,
-            client_secret=workflow_settings.AZURE_CLIENT_SECRET
-        )
-        _azure_project_client = AIProjectClient(
-            credential=_azure_credential,
-            endpoint=workflow_settings.AZURE_PROJECT_ENDPOINT.get_secret_value()
-        )
-        return _azure_project_client.get_openai_client()
-    except Exception as ex:
-        raise ex
+        try:
+            _azure_credential = ClientSecretCredential(
+                client_id=workflow_settings.AZURE_CLIENT_ID,
+                tenant_id=workflow_settings.AZURE_TENANT_ID,
+                client_secret=workflow_settings.AZURE_CLIENT_SECRET
+            )
+            _azure_project_client = AIProjectClient(
+                credential=_azure_credential,
+                endpoint=workflow_settings.AZURE_PROJECT_ENDPOINT.get_secret_value()
+            )
+            return _azure_project_client.get_openai_client()
+        except Exception as ex:
+            raise ex
 
 
 _global_client: OpenAI = load_azure_ai_project()
@@ -109,41 +108,3 @@ class DecisionStepAzure:
                 session_id=session_id
             )
             return response
-
-
-# async def main_test_run():
-#     user_id = "test_user_123"
-#     # decision = DecisionAzureFlow(user_id)
-#     start_conv = time.perf_counter()
-#     message_1 = "Hello my name is alpapi, whats your name?"
-#     decision = DecisionStepAzure(user_id=user_id, input_message=message_1)
-#
-#     resp_1 = await decision.execute_agent()
-#     mid_conv = time.perf_counter()
-#     print(f"INPUT: {message_1}\nOUTPUT: {resp_1}\n\n TIME: {mid_conv - start_conv}")
-#     message_2 = "Do you remember me?"
-#     decision_2 = DecisionStepAzure(user_id=user_id, input_message=message_2)
-#     resp_2 = await decision_2.execute_agent()
-#     print(f"INPUT: {message_2}\nOUTPUT: {resp_2}\n\n TIME: {time.perf_counter() - mid_conv}")
-#
-#
-# asyncio.run(main_test_run())
-#
-#
-# async def main_test_run_loop():
-#     user_id = "test_user_123"
-#     while True:
-#         _input_message = input(f"\n---\n\nUser ID: {user_id}\nInput message: ")
-#
-#         exiting_keywords = ["exit","quit", "done"]
-#         if _input_message in exiting_keywords:
-#             break
-#         _start_time = time.perf_counter()
-#         dec_obj = DecisionStepAzure(user_id=user_id, input_message=_input_message)
-#         _resp = await dec_obj.execute_agent()
-#         mid_conv = time.perf_counter()
-#         print(f"Output: {_resp}\n\n TIME: {mid_conv - _start_time}")
-#
-#     print("Ending loop")
-#
-# asyncio.run(main_test_run_loop())
