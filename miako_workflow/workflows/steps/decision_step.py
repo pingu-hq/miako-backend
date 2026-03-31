@@ -18,9 +18,9 @@ def load_azure_ai_project():
     try:
         if _azure_credential is None:
             _azure_credential = ClientSecretCredential(
-                client_id=workflow_settings.AZURE_CLIENT_ID,
-                tenant_id=workflow_settings.AZURE_TENANT_ID,
-                client_secret=workflow_settings.AZURE_CLIENT_SECRET
+                client_id=workflow_settings.AZURE_CLIENT_ID.get_secret_value(),
+                tenant_id=workflow_settings.AZURE_TENANT_ID.get_secret_value(),
+                client_secret=workflow_settings.AZURE_CLIENT_SECRET.get_secret_value()
             )
 
         if _azure_project_client is None:
