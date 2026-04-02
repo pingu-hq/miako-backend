@@ -6,10 +6,9 @@ def setup_logger(log_level: str = "INFO"):
     logger.remove()
     logger.add(
         sys.stdout,
-        format=("<green>{time:YYYY-MM-DD HH:mm:ss}</green> "
-                "| <level>{level: <8}</level> "
+        format=("<level><yellow>{level: <8}</yellow></level> | <green>{time:YYYY-MM-DD HH:mm:ss}</green> "
                 "| <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> "
-                "- <level>{message}</level>"),
+                "-> <level>{message}</level>"),
         level=log_level,
         colorize=True,
         diagnose=False
