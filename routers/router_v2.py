@@ -13,6 +13,7 @@ from databases.database import get_session
 from llm_workflow.workflows.base import ChatbotExecutor
 from llm_workflow.workflows.flows import AdaptiveChatbot
 from pydantic import BaseModel, Field
+from main import logger
 
 
 class UserBase(BaseModel):
@@ -51,11 +52,14 @@ async def send_message(request: MessageRequest, user_id = Depends(get_current_us
         )
         chatbot = ChatbotExecutor(chat_obj)
         response = await chatbot.execute()
+        logger.info(f"User is {user_id}. Chat completion is successful. Message is: {response[20:]}....")
         return MessageRequest(message=str(response))
-    except HTTPException:
-        raise
-    except Exception as err:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err))
+    except HTTPException as err1:
+        logger.debug(f"Error occurred. User is {user_id}. Error message is: {err1.detail}")
+        raise HTTPException(status_code=err1.status_code, detail="Bad Request")
+    except Exception as err2:
+        logger.debug(f"Unexpected Error Exception occurred. User is {user_id}. Error message is: {str(err2)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
 
 
 
@@ -72,29 +76,35 @@ async def sign_up_user(payload: UserCreate, session: AsyncSession = Depends(get_
         session.add(db_user)
         await session.commit()
         await session.refresh(db_user)
+        logger.info(f"User created successfully by: {payload.email}.")
         return {"status": status.HTTP_201_CREATED}
     except Exception as err:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err))
+        logger.debug(f"Error occurred. User is {payload.email}. Error message is: {str(err)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
 
 
 @router.post("/login", status_code=status.HTTP_200_OK)
 async def login_user(payload: UserLogin, session: AsyncSession = Depends(get_session)):
     if not payload.email or not payload.password:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email and password is required")
+        logger.debug("Email and password is required")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
 
     statement = select(User).where(User.email == payload.email)
     result = await session.execute(statement=statement)
     user = result.scalar_one_or_none()
 
-    error_401 = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+    error_401 = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized Request")
 
     if not user:
+        logger.debug("Invalid email or username")
         raise error_401
 
     is_valid = await verify_hash_password(user.hashed_password, payload.password)
     if not is_valid:
+        logger.debug("Invalid password")
         raise error_401
 
+    logger.info(f"User: {payload.email} has successfully logged in")
     return login_response_tokens(subject=user.uuid)
 
 @router.post("/refresh", response_model=RefreshTokenResponse)
@@ -108,8 +118,10 @@ def me_test(payload: RefreshTokenRequest):
             token_type="bearer"
         )
     except HTTPException:
+        logger.debug("Unauthorized Request")
         raise
     except Exception as err:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err))
+        logger.debug(f"Internal Server Error: {str(err)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal Server Error")
 
 
