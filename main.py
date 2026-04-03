@@ -4,13 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # from routers.router_v2 import router as chatbot_router_v2
 from core.config import settings
 from miako_workflow.miako_router import router as miako_router_v1
-from core.logging import setup_logger
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-
-logger = setup_logger(os.getenv("LOG_LEVEL", "INFO"))
+from core.app_logger import logger
 
 
 app = FastAPI(
@@ -46,12 +40,12 @@ def health_check():
     logger.info("Health check endpoint accessed")
     return {"status": "ok"}
 
-if __name__ == "__main__":
-    import uvicorn
-    print("RUNNING UVICORN")
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=False
-    )
+# if __name__ == "__main__":
+#     import uvicorn
+#     print("RUNNING UVICORN")
+#     uvicorn.run(
+#         "main:app",
+#         host="0.0.0.0",
+#         port=8000,
+#         reload=False
+#     )

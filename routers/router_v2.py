@@ -13,7 +13,7 @@ from databases.database import get_session
 from llm_workflow.workflows.base import ChatbotExecutor
 from llm_workflow.workflows.flows import AdaptiveChatbot
 from pydantic import BaseModel, Field
-from main import logger
+from core.app_logger import logger
 
 
 class UserBase(BaseModel):
