@@ -108,3 +108,57 @@ class DecisionStepAzure:
                 session_id=session_id
             )
             return response
+
+
+from abc import ABC, abstractmethod
+from cachetools import LRUCache
+import threading
+
+CACHE_CLIENT = LRUCache(maxsize=1)
+CACHE_LOCK = threading.Lock()
+
+
+
+
+class AzureAgentBase(ABC):
+
+    cache_client = LRUCache(maxsize=1)
+    cache_lock = threading.Lock()
+
+    def __init__(self):
+        self._azure_credential = None
+
+    @property
+    def azure_ai_project(self):
+        return AIProjectClient(
+            credential=self.azure_credential,
+            endpoint=workflow_settings.AZURE_PROJECT_ENDPOINT.get_secret_value()
+        )
+
+    @property
+    def azure_credential(self):
+        if self._azure_credential is None:
+            self._azure_credential = ClientSecretCredential(
+                client_id=workflow_settings.AZURE_CLIENT_ID.get_secret_value(),
+                tenant_id=workflow_settings.AZURE_TENANT_ID.get_secret_value(),
+                client_secret=workflow_settings.AZURE_CLIENT_SECRET.get_secret_value()
+            )
+        return self._azure_credential
+
+
+    def azure_client(self, is_resetting: bool = False) -> OpenAI:
+
+        with self.cache_lock:
+            if is_resetting:
+                self.cache_client.clear()
+
+            if "default" not in self.cache_client:
+                _client = self.azure_ai_project.get_openai_client()
+                self.cache_client["default"] = _client
+
+            return self.cache_client["default"]
+
+    async def conversation_id(self):
+        _azure_client = self.azure_client()
+        _conv = await asyncio.to_thread(_azure_client.conversations.create)
+        return _conv.id
