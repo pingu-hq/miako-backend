@@ -148,17 +148,145 @@ class AzureAgentBase(ABC):
 
     def azure_client(self, is_resetting: bool = False) -> OpenAI:
 
-        with self.cache_lock:
-            if is_resetting:
-                self.cache_client.clear()
 
-            if "default" not in self.cache_client:
-                _client = self.azure_ai_project.get_openai_client()
-                self.cache_client["default"] = _client
 
-            return self.cache_client["default"]
-
-    async def conversation_id(self):
-        _azure_client = self.azure_client()
-        _conv = await asyncio.to_thread(_azure_client.conversations.create)
-        return _conv.id
+#
+#
+# @dataclass(slots=False)
+# class UserAzureInfo:
+#     user_id: str | None = None
+#     conversation_id: str | None = None
+#     user_lock: asyncio.Lock = asyncio.Lock()
+#
+#
+# @lru_cache(maxsize=100)
+# def get_azure_user_info(user_id: str):
+#     return UserAzureInfo(user_id=user_id)
+#
+#
+#
+# class DecisionStepAzure:
+#     def __init__(self, user_id: str, input_message: str):
+#         self.state = get_azure_user_info(user_id=user_id)
+#         self._input_message = input_message
+#
+#     @property
+#     def message(self):
+#         return self._input_message
+#
+#
+#     async def conversation_session_id(self):
+#         if self.state.conversation_id is None:
+#             _id = await getting_conversation_id()
+#             self.state.conversation_id = _id
+#         return self.state.conversation_id
+#
+#     async def execute_agent(self):
+#         session_id = await self.conversation_session_id()
+#         lock = self.state.user_lock
+#         async with lock:
+#             response = await getting_response(
+#                 input_message=self.message,
+#                 session_id=session_id
+#             )
+#             return response
+#
+#
+# from abc import ABC, abstractmethod
+# from cachetools import LRUCache, TTLCache
+# import threading
+#
+#
+# @dataclass(slots=False)
+# class Info:
+#     user_id: str | None = None
+#     conversation_id: str | None = None
+#     user_lock: asyncio.Lock = asyncio.Lock()
+#     openai_client: OpenAI | None = None
+#
+#
+# class States:
+#     def __init__(self):
+#         self._info: None | Info = None
+#
+#     def add_user_id(self, user_id):
+#         self.info.user_id = user_id
+#         return self
+#
+#     def add_conversation_id(self, conversation_id):
+#         self.info.conversation_id = conversation_id
+#         return self
+#
+#     def add_client(self, client):
+#         self.info.openai_client = client
+#         return self
+#
+#     @property
+#     def info(self):
+#         if self._info is None:
+#             self._info = Info()
+#         return self._info
+#
+# CACHE_USER_STATE = TTLCache(ttl=3600, maxsize=50)
+# # CACHE_CLIENT = LRUCache(maxsize=1)
+# # CACHE_LOCK = threading.Lock()
+#
+# @dataclass(slots=False)
+# class StateInfo:
+#     user_id: str | None = None
+#     conversation_id: str | None = None
+#     openai_client: OpenAI | None = None
+#     user_lock: asyncio.Lock = asyncio.Lock()
+#
+#
+# class AzureAgentBase(ABC):
+#
+#     __cache_client = LRUCache(maxsize=1)
+#     __cache_lock = threading.Lock()
+#
+#     def __init__(self, user_id: str | None = None):
+#         self.user_id = user_id
+#         self._azure_credential = None
+#
+#     @property
+#     def azure_ai_project(self):
+#         return AIProjectClient(
+#             credential=self.azure_credential,
+#             endpoint=workflow_settings.AZURE_PROJECT_ENDPOINT.get_secret_value()
+#         )
+#
+#     @property
+#     def azure_credential(self):
+#         if self._azure_credential is None:
+#             self._azure_credential = ClientSecretCredential(
+#                 client_id=workflow_settings.AZURE_CLIENT_ID.get_secret_value(),
+#                 tenant_id=workflow_settings.AZURE_TENANT_ID.get_secret_value(),
+#                 client_secret=workflow_settings.AZURE_CLIENT_SECRET.get_secret_value()
+#             )
+#         return self._azure_credential
+#
+#
+#     def get_azure_client(self, is_resetting: bool = False) -> OpenAI:
+#
+#         with self.__cache_lock:
+#             if is_resetting:
+#                 self.__cache_client.clear()
+#
+#             if "default" not in self.__cache_client:
+#                 _client = self.azure_ai_project.get_openai_client()
+#                 self.__cache_client["default"] = _client
+#
+#             self.state.openai_client = self.__cache_client["default"]
+#             return self.__cache_client["default"]
+#
+#     async def get_conversation_id(self):
+#         _azure_client = self.get_azure_client()
+#         _conv = await asyncio.to_thread(_azure_client.conversations.create)
+#         return _conv.id
+#
+#     def agent_run(self):
+#
+#
+#     @abstractmethod
+#     async def run_async(self):
+#         pass
