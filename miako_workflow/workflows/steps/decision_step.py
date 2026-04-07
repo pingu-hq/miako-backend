@@ -1,7 +1,7 @@
 import time
 import asyncio
 from dataclasses import dataclass
-from openai import OpenAI, OpenAIError
+from openai import OpenAI
 from miako_workflow.config_files.config import workflow_settings
 from azure.ai.projects import AIProjectClient
 from azure.identity import ClientSecretCredential
@@ -19,12 +19,13 @@ _main_lock = asyncio.Lock()
 _data_state_holder:  dict[str, StateHolder] = {}
 
 
-class AzureChatResponseDraft:
-    def __init__(self, user_id: str, input_message: str):
+class AzureChatResponseBase:
+    def __init__(self, user_id: str, input_message: str, extra_body: dict | None = None):
         self.user_id = user_id
         self.input_message = input_message
         self.main_lock = _main_lock
         self.state_holder = _data_state_holder
+        self.extra_body = extra_body or {}
 
     def get_openai_client_synchronous(self) -> OpenAI | None:
         try:
@@ -100,7 +101,7 @@ class AzureChatResponseDraft:
         response = client.responses.create(
             input=input_message,
             conversation=conversation_id,
-            extra_body=workflow_settings.KOKOMI_AGENT
+            extra_body=self.extra_body
         )
         return response.output_text
 
@@ -124,26 +125,59 @@ class AzureChatResponseDraft:
             raise ex
 
 
+class KokomiChatResponse:
+    def __init__(self, user_id: str, input_message: str):
+        self.chat_object = AzureChatResponseBase(
+            user_id=user_id,
+            input_message=input_message,
+            extra_body=workflow_settings.KOKOMI_AGENT
+        )
+
+    async def run_agent(self):
+        try:
+            response = await self.chat_object.execute()
+            return response
+        except Exception as ex:
+            raise ex
+
 # async def run_the_draft():
 #     user_id = "test_user"
+#     user_id_2 = "new_test_user"
 #     message_1 = "Hello my name is alpapi, whats yours?"
 #     message_2 = "Do you remember whats my name?"
-#     start_ = time.monotonic()
+#     time_1 = time.monotonic()
 #
-#     resp_obj_1 = AzureChatResponseDraft(user_id, message_1)
-#     resp_1 = await resp_obj_1.execute()
+#     resp_obj_1 = KokomiChatResponse(user_id, message_1)
+#     resp_1 = await resp_obj_1.run_agent()
 #     print(message_1)
 #     print(resp_1)
 #
-#     mid_ = time.monotonic()
-#     print(f"Time taken by 1st message: {mid_ - start_}")
+#     time_2 = time.monotonic()
+#     print(f"Time taken by 1st message: {time_2 - time_1}")
 #
-#     resp_obj_2 = AzureChatResponseDraft(user_id, message_2)
-#     resp_2 = await resp_obj_2.execute()
+#     resp_obj_2 = KokomiChatResponse(user_id, message_2)
+#     resp_2 = await resp_obj_2.run_agent()
 #     print(message_2)
 #     print(resp_2)
 #
-#     end_ = time.monotonic()
-#     print(f"Time taken by 2nd message: {end_ - mid_}")
+#
+#
+#     time_3 = time.monotonic()
+#     print(f"Time taken by 2nd message: {time_3 - time_2}")
+#
+#
+#     resp_obj_3 = KokomiChatResponse(user_id=user_id_2, input_message=message_1)
+#     resp_3 = await resp_obj_3.run_agent()
+#     print(message_1)
+#     print(resp_3)
+#     time_4 = time.monotonic()
+#     print(f"Time taken by 3rd message: {time_4 - time_3}")
+#
+#     resp_obj_4 = KokomiChatResponse(user_id_2, message_2)
+#     resp_4 = await resp_obj_4.run_agent()
+#     print(message_2)
+#     print(resp_4)
+#     time_5 = time.monotonic()
+#     print(f"Time taken by 4th message: {time_5 - time_4}")
 #
 # asyncio.run(run_the_draft())
