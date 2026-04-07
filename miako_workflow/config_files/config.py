@@ -21,6 +21,7 @@ class WorkflowSetting(BaseSettings):
     AZURE_CLIENT_ID: SecretStr
     AZURE_TENANT_ID: SecretStr
     AZURE_CLIENT_SECRET: SecretStr
+    AZURE_API_KEY: SecretStr
 
     @property
     def KOKOMI_AGENT(self) -> dict[str, dict[str, str]]:
