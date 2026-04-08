@@ -122,7 +122,7 @@ PROMPTS = PromptsV1()
 
 class IntentFlowStates(BaseModel):
     user_id: str | uuid.UUID | Any = ""
-    data_input: dict[str, Any] = Field(default_factory=dict)
+    data_input: dict[str, Any] = {}
     data_extraction_handler: str = ""
     error_exception: Exception | str | None = None
     facts_validation_handler: str = ""
@@ -142,11 +142,7 @@ class _IntentClassifier(Flow[IntentFlowStates]):
     def groq_llm(self):
         return GroqLLM()
 
-    @start()
-    async def start_or_testing_phase(self):
-        pass
-
-    @listen(start_or_testing_phase)
+    @start
     async def prep_prompts(self) -> tuple[str, str]:
         system_prompt = PROMPTS.system_data_extractor
         user_prompt = await PROMPTS.user_data_extractor(
