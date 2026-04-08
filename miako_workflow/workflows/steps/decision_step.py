@@ -1,4 +1,3 @@
-import time
 import asyncio
 from dataclasses import dataclass
 from openai import OpenAI
@@ -19,7 +18,7 @@ _main_lock = asyncio.Lock()
 _data_state_holder:  dict[str, StateHolder] = {}
 
 
-class AzureChatResponseBase:
+class AzureAgentServiceBase:
     def __init__(self, user_id: str, input_message: str, extra_body: dict | None = None):
         self.user_id = user_id
         self.input_message = input_message
@@ -121,7 +120,7 @@ class AzureChatResponseBase:
 
 class KokomiChatResponse:
     def __init__(self, user_id: str, input_message: str):
-        self.chat_object = AzureChatResponseBase(
+        self.chat_object = AzureAgentServiceBase(
             user_id=user_id,
             input_message=input_message,
             extra_body=workflow_settings.KOKOMI_AGENT
@@ -134,6 +133,7 @@ class KokomiChatResponse:
         except Exception as ex:
             raise ex
 
+#import time
 # async def run_the_draft():
 #     user_id = "test_user"
 #     user_id_2 = "new_test_user"
