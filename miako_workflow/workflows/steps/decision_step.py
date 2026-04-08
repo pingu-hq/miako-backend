@@ -72,19 +72,7 @@ class AzureChatResponseBase:
                 )
             return self.state_holder[user_id]
 
-    async def response_api_with_lock(self, user_id: str, input_message: str):
-        data_state = await self.get_user_state(user_id=user_id)
-        async with data_state.async_lock:
-            if not data_state.conversation_id:
-                conv_id = await self.conversation_id_async()
-                print("MAKING NEW CONVERSATION ID")
-                data_state.conversation_id = conv_id
-            else:
-                print("REUSING CONVERSATION ID")
-                conv_id = data_state.conversation_id
 
-            response = await self.response_api_async(conversation_id=conv_id, input_message=input_message)
-            return response
 
 
 
@@ -96,7 +84,7 @@ class AzureChatResponseBase:
 
 
 
-    def get_response_api_synchronous(self, conversation_id: str, input_message: str):
+    def agent_response_in_synchronous(self, conversation_id: str, input_message: str):
         client = self.azure_client
         response = client.responses.create(
             input=input_message,
@@ -105,9 +93,9 @@ class AzureChatResponseBase:
         )
         return response.output_text
 
-    async def response_api_async(self, conversation_id: str, input_message: str):
+    async def agent_response_async(self, conversation_id: str, input_message: str):
         return await asyncio.to_thread(
-            self.get_response_api_synchronous,
+            self.agent_response_in_synchronous,
             conversation_id,
             input_message
         )
@@ -115,9 +103,24 @@ class AzureChatResponseBase:
     async def conversation_id_async(self):
         return await asyncio.to_thread(self.get_conversation_id_synchronous)
 
+
+    async def final_agent_response_with_safety(self, user_id: str, input_message: str):
+        data_state = await self.get_user_state(user_id=user_id)
+        async with data_state.async_lock:
+            if not data_state.conversation_id:
+                conv_id = await self.conversation_id_async()
+                print("MAKING NEW CONVERSATION ID")
+                data_state.conversation_id = conv_id
+            else:
+                print("REUSING CONVERSATION ID")
+                conv_id = data_state.conversation_id
+
+            response = await self.agent_response_async(conversation_id=conv_id, input_message=input_message)
+            return response
+
     async def execute(self):
         try:
-            return await self.response_api_with_lock(
+            return await self.final_agent_response_with_safety(
                 user_id=self.user_id,
                 input_message=self.input_message
             )
