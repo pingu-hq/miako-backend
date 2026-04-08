@@ -79,3 +79,23 @@ class LanguageLibrary(BasePrompt):
 class IntentLibrary(BasePrompt):
     def __init__(self):
         super().__init__("intent.yaml")
+
+    @property
+    def documentation_context(self):
+        return self.get_prompt("documentation-context")
+
+    @property
+    def data_extractor_user_prompt_v1(self):
+        return self.get_prompt("v1.data-extractor.user-prompt")
+
+    @property
+    def data_extractor_system_prompt_v1(self):
+        return self.get_prompt("v1.data-extractor.system-prompt")
+
+    @property
+    def facts_validator_user_prompt_v1(self):
+        return self.get_prompt("v1.facts-validator.user-prompt")
+
+    @property
+    def facts_validator_system_prompt_v1(self):
+        return self.get_prompt("v1.facts-validator.system-prompt")
