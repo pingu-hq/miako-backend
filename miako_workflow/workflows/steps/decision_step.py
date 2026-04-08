@@ -63,7 +63,7 @@ class AzureChatResponseBase:
             endpoint=workflow_settings.AZURE_PROJECT_ENDPOINT.get_secret_value()
         )
 
-    async def get_user_state(self, user_id: str):
+    async def get_current_user_state(self, user_id: str):
         async with self.main_lock:
             if user_id not in self.state_holder:
                 self.state_holder[user_id] = StateHolder(
@@ -72,21 +72,16 @@ class AzureChatResponseBase:
                 )
             return self.state_holder[user_id]
 
-
-
-
-
-    def get_conversation_id_synchronous(self):
-        client = self.azure_client
-        conv = client.conversations.create()
+    def create_conversation_in_synchronous(self):
+        conv = self.azure_client.conversations.create()
         return conv.id
 
+    async def get_conversation_id(self):
+        return await asyncio.to_thread(self.create_conversation_in_synchronous)
 
 
-
-    def agent_response_in_synchronous(self, conversation_id: str, input_message: str):
-        client = self.azure_client
-        response = client.responses.create(
+    def create_response_in_synchronous(self, conversation_id: str, input_message: str):
+        response = self.azure_client.responses.create(
             input=input_message,
             conversation=conversation_id,
             extra_body=self.extra_body
@@ -95,20 +90,16 @@ class AzureChatResponseBase:
 
     async def agent_response_async(self, conversation_id: str, input_message: str):
         return await asyncio.to_thread(
-            self.agent_response_in_synchronous,
+            self.create_response_in_synchronous,
             conversation_id,
             input_message
         )
 
-    async def conversation_id_async(self):
-        return await asyncio.to_thread(self.get_conversation_id_synchronous)
-
-
     async def final_agent_response_with_safety(self, user_id: str, input_message: str):
-        data_state = await self.get_user_state(user_id=user_id)
+        data_state = await self.get_current_user_state(user_id=user_id)
         async with data_state.async_lock:
             if not data_state.conversation_id:
-                conv_id = await self.conversation_id_async()
+                conv_id = await self.get_conversation_id()
                 print("MAKING NEW CONVERSATION ID")
                 data_state.conversation_id = conv_id
             else:
