@@ -85,8 +85,9 @@ class PromptsV1:
     async def user_data_extractor(self, input_obj_data: dict[str, Any], history: MessageStorageV1) -> str:
         conversation_history = await history.get_messages(include_metadata=True)
         lang_obj = LanguageObject(**input_obj_data)
-        query = lang_obj.translated_text + "" + lang_obj.original_text
-        documentation_context = await VECTOR.show_knowledge(query=query)
+        # query = lang_obj.translated_text + "" + lang_obj.original_text
+        # documentation_context = await VECTOR.show_knowledge(query=query)
+        documentation_context = self.documentation_context
         template = self._get_user_data_extractor_template
         user_prompt = await template.render_async(
             translated_text=lang_obj.translated_text,
