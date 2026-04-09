@@ -123,7 +123,7 @@ class KokomiChatResponse:
         self.chat_object = AzureAgentServiceBase(
             user_id=user_id,
             input_message=input_message,
-            extra_body=workflow_settings.KOKOMI_AGENT
+            extra_body=workflow_settings.kokomi_agent
         )
 
     async def run_agent(self):
@@ -133,7 +133,7 @@ class KokomiChatResponse:
         except Exception as ex:
             raise ex
 
-#import time
+# import time
 # async def run_the_draft():
 #     user_id = "test_user"
 #     user_id_2 = "new_test_user"
@@ -159,19 +159,19 @@ class KokomiChatResponse:
 #     time_3 = time.monotonic()
 #     print(f"Time taken by 2nd message: {time_3 - time_2}")
 #
-#
-#     resp_obj_3 = KokomiChatResponse(user_id=user_id_2, input_message=message_1)
-#     resp_3 = await resp_obj_3.run_agent()
-#     print(message_1)
-#     print(resp_3)
-#     time_4 = time.monotonic()
-#     print(f"Time taken by 3rd message: {time_4 - time_3}")
-#
-#     resp_obj_4 = KokomiChatResponse(user_id_2, message_2)
-#     resp_4 = await resp_obj_4.run_agent()
-#     print(message_2)
-#     print(resp_4)
-#     time_5 = time.monotonic()
-#     print(f"Time taken by 4th message: {time_5 - time_4}")
+#     #
+#     # resp_obj_3 = KokomiChatResponse(user_id=user_id_2, input_message=message_1)
+#     # resp_3 = await resp_obj_3.run_agent()
+#     # print(message_1)
+#     # print(resp_3)
+#     # time_4 = time.monotonic()
+#     # print(f"Time taken by 3rd message: {time_4 - time_3}")
+#     #
+#     # resp_obj_4 = KokomiChatResponse(user_id_2, message_2)
+#     # resp_4 = await resp_obj_4.run_agent()
+#     # print(message_2)
+#     # print(resp_4)
+#     # time_5 = time.monotonic()
+#     # print(f"Time taken by 4th message: {time_5 - time_4}")
 #
 # asyncio.run(run_the_draft())
