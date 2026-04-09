@@ -4,6 +4,7 @@ from typing import Dict, Union, Any
 from abc import ABC, abstractmethod
 from pathlib import Path
 from llama_index.core.prompts import PromptTemplate
+from jinja2 import Template
 try:
     from importlib import resources
 except ImportError:
@@ -71,6 +72,19 @@ class BasePrompt:
 class PromptLibrary(BasePrompt):
     def __init__(self):
         super().__init__("prompts.yaml")
+
+    @property
+    def system_prompt_v2(self):
+        return self.get_prompt("v2.system-prompt")
+
+    @property
+    def user_prompt_v2(self):
+        return self.get_prompt("v2.user-prompt")
+
+    @property
+    def user_prompt_template(self):
+        return Template(self.user_prompt_v2, enable_async=True)
+
 
 class LanguageLibrary(BasePrompt):
     def __init__(self):
