@@ -1,3 +1,4 @@
+import asyncio
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, SecretStr
 from pathlib import Path
@@ -14,18 +15,42 @@ class WorkflowSetting(BaseSettings):
     COHERE_API_KEY: SecretStr
     SECRET_KEY: SecretStr
     AZURE_PROJECT_ENDPOINT: SecretStr
-    AGENT_NAME_1: str
-    AGENT_VERSION_1: str
+
     HELLO_WORLD: str
 
     AZURE_CLIENT_ID: SecretStr
     AZURE_TENANT_ID: SecretStr
     AZURE_CLIENT_SECRET: SecretStr
     AZURE_API_KEY: SecretStr
+    AZURE_ENDPOINT_FOR_MODELS: SecretStr
+
+    # Kokomi Agent
+    AGENT_NAME_1: str
+    AGENT_VERSION_1: str
+
+    # Miako Prototype Agent v1
+    # AGENT_NAME_2: str
+    # AGENT_VERSION_2: str
 
     @property
-    def KOKOMI_AGENT(self) -> dict[str, dict[str, str]]:
+    def kokomi_agent(self) -> dict[str, dict[str, str]]:
         return self._create_agent_ref(name=self.AGENT_NAME_1, version=self.AGENT_VERSION_1)
+
+    @property
+    def get_azure_credentials(self):
+        return (
+            self.AZURE_API_KEY,
+            self.AZURE_ENDPOINT_FOR_MODELS,
+            self.AZURE_PROJECT_ENDPOINT
+        )
+
+
+
+    # @property
+    # def miako_agent(self):
+    #     return self._create_agent_ref(name=self.AGENT_NAME_2, version=self.AGENT_VERSION_2)
+
+
 
     @staticmethod
     def _create_agent_ref(name:str, version:str):
