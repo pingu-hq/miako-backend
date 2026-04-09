@@ -12,7 +12,8 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from databases.database import get_session
 from pydantic import BaseModel, Field
-from miako_workflow.workflows.steps.decision_step import DecisionStepAzure
+from miako_workflow.workflows.flows import AdaptiveChatbot
+from miako_workflow.workflows.base import ChatbotExecutor
 from miako_workflow.config_files.config import workflow_settings
 from core.app_logger import logger
 
@@ -47,11 +48,12 @@ class MessageRequest(BaseModel):
 @router.post("/send-message")
 async def send_message(request: MessageRequest, user_id = Depends(get_current_user_id)):
     try:
-        chat_obj = DecisionStepAzure(
+        chat_obj = AdaptiveChatbot(
             user_id=user_id,
             input_message=request.message
         )
-        response = await chat_obj.execute_agent()
+        resp_obj = ChatbotExecutor(chat=chat_obj)
+        response = await resp_obj.execute()
         logger.success(f"Send message successful for user: {user_id}")
         return MessageRequest(message=str(response))
     except HTTPException as err1:
