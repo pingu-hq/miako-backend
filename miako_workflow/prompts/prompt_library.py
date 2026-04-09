@@ -85,6 +85,18 @@ class PromptLibrary(BasePrompt):
     def user_prompt_template(self):
         return Template(self.user_prompt_v2, enable_async=True)
 
+    @property
+    def system_prompt_v3(self):
+        return self.get_prompt("v3.system-prompt")
+
+    @property
+    def user_prompt_v3(self):
+        return self.get_prompt("v3.user-prompt")
+
+    @property
+    def user_prompt_template_v3(self):
+        return Template(self.user_prompt_v3, enable_async=True)
+
 
 class LanguageLibrary(BasePrompt):
     def __init__(self):
