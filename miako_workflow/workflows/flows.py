@@ -14,10 +14,7 @@ from jinja2 import Template
 
 
 prompts = PromptLibrary()
-system_prompt_final = prompts.get_prompt("v2.system-prompt")
 
-_user_prompt_final = prompts.get_prompt("v2.user-prompt")
-user_prompt_template = Template(_user_prompt_final, enable_async=True)
 
 
 class EngineStates(BaseModel):
@@ -62,6 +59,7 @@ class _AdaptiveChatbotEngine(Flow[EngineStates]):
 
     @listen(intent_classifier)
     async def final_answer_test(self, data: Exception | str):
+        global prompts
         if isinstance(data, Exception):
             return Exception(str(data))
 
@@ -71,6 +69,7 @@ class _AdaptiveChatbotEngine(Flow[EngineStates]):
         language_used_input = _input.get("source_language")
         memory = await self.message_storage.get_messages(include_metadata=True)
         conversation_history = json.dumps(memory)
+        user_prompt_template = prompts.user_prompt_template
         user_prompt = await user_prompt_template.render_async(
             conversation_history=conversation_history,
             intent_classifier_json_output=data,
@@ -87,6 +86,8 @@ class _AdaptiveChatbotEngine(Flow[EngineStates]):
             reasoning_effort="medium"
         )
 
+
+        response = await deepseek_chat(prompts.system_prompt_v2, user_prompt)
         print(user_prompt)
         await self.message_storage.add_ai_message(content=response)
         return response
