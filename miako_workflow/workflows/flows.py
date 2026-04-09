@@ -5,16 +5,16 @@ from typing import Any
 from crewai.flow import Flow, start, listen, router, or_
 from pydantic import BaseModel, ConfigDict
 from miako_workflow.memory.short_term_memory.message_cache import MessageStorageV1
-from miako_workflow.llm.groq_llm import GroqLLM, MODEL
 from miako_workflow.prompts.prompt_library import PromptLibrary
 from fastapi import status, HTTPException
 from miako_workflow.workflows.steps.language_step import LanguageFlow
 from miako_workflow.workflows.steps.intent_step import IntentFlow
-from jinja2 import Template
+from miako_workflow.config_files.config import workflow_settings
+from openai import AsyncOpenAI
 
 
 prompts = PromptLibrary()
-
+azure_client_async: AsyncOpenAI | None = None
 
 
 class EngineStates(BaseModel):
@@ -29,6 +29,33 @@ class _AdaptiveChatbotEngine(Flow[EngineStates]):
         self.user_id = user_id
         self.message_storage = MessageStorageV1(user_id=user_id)
 
+    @property
+    def azure_client(self):
+        global azure_client_async
+        if azure_client_async is None:
+            _api_key, _openai_endpoint, _ = workflow_settings.get_azure_credentials
+
+            azure_client_async = AsyncOpenAI(
+                api_key=_api_key.get_secret_value(),
+                base_url=_openai_endpoint.get_secret_value()
+            )
+        return azure_client_async
+
+    async def deepseek_chat(self, instructions: str | None, input_message: str):
+
+
+        deployment_name = "DeepSeek-R1-0528"
+        messages = []
+        if instructions and isinstance(instructions, str):
+            messages.append({"role": "system", "content": instructions})
+
+        messages.append({"role": "user", "content": input_message})
+
+        _response = await self.azure_client.chat.completions.create(
+            model=deployment_name,
+            messages=messages,
+        )
+        return _response.choices[0].message.content
 
 
     @start()
@@ -77,17 +104,8 @@ class _AdaptiveChatbotEngine(Flow[EngineStates]):
             user_translated_input=user_translated_input,
             source_language=language_used_input
         )
-        llm = GroqLLM()
-        llm.add_system(content=system_prompt_final)
-        llm.add_user(content=user_prompt)
-        response = await llm.groq_chat(
-            model=MODEL.gpt_oss_120, temperature=.6,
-            max_completion_tokens=20_000,
-            reasoning_effort="medium"
-        )
 
-
-        response = await deepseek_chat(prompts.system_prompt_v2, user_prompt)
+        response = await self.deepseek_chat(prompts.system_prompt_v3, user_prompt)
         print(user_prompt)
         await self.message_storage.add_ai_message(content=response)
         return response
