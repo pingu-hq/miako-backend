@@ -2,7 +2,7 @@ import asyncio
 import json
 import uuid
 from typing import Any
-from crewai.flow import Flow, start, listen, router, or_
+from crewai.flow import Flow, start, listen
 from pydantic import BaseModel, ConfigDict
 from miako_workflow.memory.short_term_memory.message_cache import MessageStorageV1
 from miako_workflow.prompts.prompt_library import PromptLibrary
@@ -96,7 +96,7 @@ class _AdaptiveChatbotEngine(Flow[EngineStates]):
         language_used_input = _input.get("source_language")
         memory = await self.message_storage.get_messages(include_metadata=True)
         conversation_history = json.dumps(memory)
-        user_prompt_template = prompts.user_prompt_template
+        user_prompt_template = prompts.user_prompt_template_v3
         user_prompt = await user_prompt_template.render_async(
             conversation_history=conversation_history,
             intent_classifier_json_output=data,
