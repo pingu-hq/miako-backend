@@ -57,13 +57,13 @@ class PromptsV1:
     @property
     def documentation_context(self):
         if self._doc_context is None:
-            self._doc_context  = self.intent.get_prompt("documentation-context")
+            self._doc_context = self.intent.documentation_context
         return self._doc_context
 
     @property
     def _get_user_data_extractor_template(self) -> Template:
         if self._user_data_extractor_template is None:
-            _prompt = self.intent.get_prompt("v1.data-extractor.user-prompt")
+            _prompt = self.intent.data_extractor_user_prompt_v1
             _template = Template(_prompt, enable_async=True)
             self._user_data_extractor_template = _template
         return self._user_data_extractor_template
@@ -71,7 +71,7 @@ class PromptsV1:
     @property
     def _get_user_facts_validator_template(self) -> Template:
         if self._user_facts_validator_template is None:
-            _prompt = self.intent.get_prompt("v1.facts-validator.user-prompt")
+            _prompt = self.intent.facts_validator_user_prompt_v1
             _template = Template(_prompt, enable_async=True)
             self._user_facts_validator_template = _template
         return self._user_facts_validator_template
@@ -79,7 +79,7 @@ class PromptsV1:
     @property
     def system_data_extractor(self) -> str:
         if self._system_data_extractor_prompt is None:
-            self._system_data_extractor_prompt = self.intent.get_prompt("v1.data-extractor.system-prompt")
+            self._system_data_extractor_prompt = self.intent.data_extractor_system_prompt_v1
         return self._system_data_extractor_prompt
 
     async def user_data_extractor(self, input_obj_data: dict[str, Any], history: MessageStorageV1) -> str:
@@ -101,7 +101,7 @@ class PromptsV1:
     @property
     def system_facts_validator(self):
         if self._system_facts_validator_prompt is None:
-            self._system_facts_validator_prompt = self.intent.get_prompt("v1.facts-validator.system-prompt")
+            self._system_facts_validator_prompt = self.intent.facts_validator_system_prompt_v1
         return self._system_facts_validator_prompt
 
 
